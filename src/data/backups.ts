@@ -8,6 +8,10 @@ export interface Backup {
   data: AppData
 }
 
+export function clearBackups(storage: Storage = localStorage): void {
+  storage.removeItem(BACKUPS_KEY)
+}
+
 export function listBackups(storage: Storage = localStorage): Backup[] {
   const raw = storage.getItem(BACKUPS_KEY)
   if (!raw) return []

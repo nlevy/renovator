@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
+import { useAuth } from '../auth/useAuth'
 import TaxonomyManager from '../components/TaxonomyManager'
-import { listBackups, type Backup } from '../data/backups'
+import { clearBackups, listBackups, type Backup } from '../data/backups'
+import { clearLocalData } from '../data/adapters/LocalAdapter'
 import { downloadExport, parseImport } from '../data/importExport'
 import { isStorageNearFull } from '../data/storage'
 import { extractData, useStore } from '../store/useStore'
@@ -8,6 +10,7 @@ import { formatCurrency } from '../utils/format'
 
 export default function Settings() {
   const store = useStore()
+  const { user, deleteAccount } = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [backups, setBackups] = useState<Backup[]>(() => listBackups())
   const [message, setMessage] = useState<string | null>(null)
@@ -52,6 +55,24 @@ export default function Settings() {
     const value = Number(budgetCapInput)
     store.setBudgetCap(budgetCapInput && value > 0 ? value : undefined)
     notify('התקציב הכולל נשמר')
+  }
+
+  const handleDeleteLocal = () => {
+    if (!window.confirm('למחוק לצמיתות את כל הנתונים המקומיים בדפדפן זה? מומלץ לייצא לקובץ קודם.')) return
+    clearLocalData()
+    clearBackups()
+    window.location.reload()
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('למחוק את חשבון ההתחברות שלכם? הלוח המשותף עצמו לא יימחק.')) return
+    try {
+      await deleteAccount()
+      notify('החשבון נמחק')
+    } catch {
+      setMessage(null)
+      setError('מחיקת החשבון נכשלה. נסו להתנתק ולהתחבר מחדש ואז לנסות שוב.')
+    }
   }
 
   return (
@@ -168,6 +189,38 @@ export default function Settings() {
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="rounded-lg bg-white p-4 shadow-sm">
+        <h3 className="mb-2 font-semibold">פרטיות ומחיקת נתונים</h3>
+        <div className="space-y-2 text-sm text-slate-500">
+          <p>
+            במצב אורח כל הנתונים נשמרים אך ורק בדפדפן שלכם ואינם נשלחים לשום מקום. בהתחברות, נתוני
+            הלוח המשותף (משימות, רכישות, אנשי קשר על פרטיהם, וסכומים) נשמרים ב-Firebase ונגישים רק
+            לכתובות שברשימת המורשים.
+          </p>
+          <p>
+            ניתן לייצא את כל הנתונים לקובץ בכל עת (למעלה). למחיקת גישה מהלוח המשותף — פנו לבעל הלוח
+            להסרת הכתובת מרשימת המורשים.
+          </p>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            onClick={handleDeleteLocal}
+            className="rounded-md border border-red-300 px-4 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+          >
+            מחיקת הנתונים המקומיים בדפדפן
+          </button>
+          {user && (
+            <button
+              onClick={handleDeleteAccount}
+              className="rounded-md border border-red-300 px-4 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+            >
+              מחיקת חשבון ההתחברות
+            </button>
+          )}
+        </div>
       </section>
     </div>
   )

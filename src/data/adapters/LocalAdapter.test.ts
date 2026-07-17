@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LocalAdapter } from './LocalAdapter'
+import { LocalAdapter, clearLocalData } from './LocalAdapter'
 import { sampleData } from '../../test/fixtures'
 
 function memoryStorage(seed?: string): Storage {
@@ -45,5 +45,13 @@ describe('LocalAdapter', () => {
     const data = sampleData()
     await adapter.save(data)
     expect(await adapter.load()).toEqual(data)
+  })
+
+  it('clearLocalData wipes the stored dataset', async () => {
+    const storage = memoryStorage()
+    const adapter = new LocalAdapter(storage)
+    await adapter.save(sampleData())
+    clearLocalData(storage)
+    expect(await adapter.load()).toBeNull()
   })
 })
