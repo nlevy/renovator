@@ -4,7 +4,7 @@ Guidance for working in this repo. See [README.md](README.md) for the human-faci
 
 ## What this is
 
-A local-first, Hebrew (RTL) renovation manager. React 19 + TypeScript + Vite, Zustand (persisted to `localStorage`), Zod, Tailwind 4, date-fns. No backend — phase 1 makes no network calls.
+A local-first, Hebrew (RTL) renovation manager. React 19 + TypeScript + Vite, Zustand, Zod, Tailwind 4, date-fns. Works with no account (localStorage), and optionally syncs a single shared board to Firebase (Auth + Firestore) for an allow-listed group. Guest mode makes no network calls.
 
 ## Commands
 
@@ -13,16 +13,25 @@ npm run dev      # dev server on :5173
 npm test         # vitest (run once)
 npm run test:watch
 npm run build    # tsc --noEmit + vite build — run before considering a change done
+npm run test:rules   # Firestore security-rules tests via the emulator (needs JDK 21+)
+npm run deploy:rules # deploy firestore.rules to Firebase
 ```
+
+Security rules live in `firestore.rules` (source of truth); their tests
+(`firestore.rules.test.ts`) run against the emulator and are excluded from the
+default `npm test`.
 
 There is no lint step; `tsc --noEmit` (part of `build`) is the type gate.
 
 ## Architecture
 
 - **`src/domain/`** is the heart of the app: pure functions and Zod schemas, no React. Every non-trivial rule lives here with a colocated `*.test.ts`. Components and pages must not recompute money/date logic — call the domain.
-- **`src/store/useStore.ts`** — the single Zustand store, persisted via the `persist` middleware. All mutations are actions on the store; referential cleanup (e.g. deleting a contact unlinks it from tasks/purchases; deleting a task removes it from others' `dependsOn`) happens in the actions.
-- **`src/data/`** — `localStorage` concerns only: seed data, rolling backups, import/export, quota check.
-- **`src/pages/`** — one screen per route; **`src/components/`** — reusable UI (form modals, `PaymentsEditor`, `PaidProgress`, `DependencyTree`, `ui/` primitives).
+- **`src/store/useStore.ts`** — the single Zustand store (no `persist` middleware). All mutations are actions; referential cleanup (deleting a contact unlinks it from tasks/purchases; deleting a task removes it from others' `dependsOn`) happens in the actions. `hydrate(data)` sets the whole dataset without taking a backup (used by initial load and remote updates).
+- **`src/data/`** — persistence. A `StorageAdapter` seam (`adapters/`) has `LocalAdapter` (guest localStorage; migrates the legacy `persist` envelope) and `CloudAdapter` (Firestore `boards/{id}` doc; AppData stored as a JSON string; realtime `onSnapshot` with a `writerNonce` echo guard). `sync.ts` is the controller (load → hydrate → debounced saves out, remote in). `SyncManager.tsx` bridges React auth state to the adapter: guest→local, allow-listed→cloud, denied→no-access screen; also seed data, backups, import/export, quota.
+- **`src/auth/`** — Firebase init (env-configured, guarded when absent), `AuthProvider`/`useAuth`, and the header account menu.
+- **`src/pages/`** — one screen per route; **`src/components/`** — reusable UI (form modals, `PaymentsEditor`, `PaidProgress`, `DependencyTree`, `ImportButton`, `ui/` primitives).
+
+**Bootstrap:** `main.tsx` runs `initSync()` (local) before first paint for a flash-free guest load, then `SyncManager` switches to the cloud adapter once an allow-listed user is known.
 
 ## Conventions & invariants
 
@@ -34,6 +43,9 @@ There is no lint step; `tsc --noEmit` (part of `build`) is the type gate.
 - **Schema evolution:** adding an enum value is backward-compatible — no version bump. A *structural* change requires bumping `SCHEMA_VERSION` in `schemas.ts` and adding a migration in `domain/migrations.ts` (persisted data and imported files both flow through `migrateToCurrent`).
 - **RTL:** use logical Tailwind utilities (`ps-`/`pe-`/`ms-`/`me-`, `inset-inline-start`, `border-s`) rather than left/right. Render phone/email with `dir="ltr"`.
 - **Tailwind v4 gotcha:** the `ui/Select` and text inputs bake in `w-full`. To constrain a control's width, wrap it in a fixed-width element rather than passing a `w-*` class (class-order conflicts won't reliably override).
+- **Persistence goes through the adapter, never directly.** UI/store code must not read/write `localStorage` or Firestore itself — go through the store + `sync.ts`. Keep the domain layer and UI identical regardless of guest vs. account mode.
+- **Auth vs. authorization:** anyone can sign in (Google); only allow-listed emails can read/write the board, enforced by `firestore.rules` (server-side). Never gate data access with client checks alone. Firebase web config is public — it lives in `VITE_FIREBASE_*` env vars; when absent the app runs guest-only.
+- **Security rules:** `firestore.rules` is the source of truth. The allowlist guard belongs on `update` only — `request.resource` doesn't exist on reads, so guarding `read` with it denies all reads (a bug we already hit). Test with `npm run test:rules`.
 - **User preference:** `git add` new **code** files as they're created (not docs/MD), and do not commit unless asked.
 
 ## Adding things — quick recipes
