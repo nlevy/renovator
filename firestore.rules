@@ -1,0 +1,28 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // A single shared board per Level 1. Access is gated by the board's
+    // `allowedEmails` list, which is managed only in the Firebase console.
+    match /boards/{boardId} {
+      function isMember() {
+        return request.auth != null
+          && request.auth.token.email in resource.data.allowedEmails;
+      }
+
+      // Reads require membership. The allowlist guard belongs on writes only —
+      // `request.resource` does not exist on reads, so guarding reads with it
+      // would deny every read.
+      allow read: if isMember();
+
+      // Members may update board data, but not change the allowlist through the
+      // app (it stays exactly as stored).
+      allow update: if isMember()
+        && request.resource.data.allowedEmails == resource.data.allowedEmails;
+
+      // The board is provisioned and removed manually in the console.
+      allow create, delete: if false;
+    }
+  }
+}
