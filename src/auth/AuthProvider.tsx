@@ -1,4 +1,12 @@
-import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth'
+import {
+  deleteUser,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  reauthenticateWithPopup,
+  signInWithPopup,
+  signOut,
+  type User,
+} from 'firebase/auth'
 import { createContext, useEffect, useState, type ReactNode } from 'react'
 import { auth, isFirebaseConfigured } from './firebase'
 
@@ -8,6 +16,7 @@ export interface AuthState {
   configured: boolean
   signIn: () => Promise<void>
   signOutUser: () => Promise<void>
+  deleteAccount: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthState | undefined>(undefined)
@@ -41,8 +50,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (auth) await signOut(auth)
   }
 
+  // Deletes the user's Firebase Auth identity. Recent sign-in is required, so we
+  // transparently re-authenticate once if Firebase asks for it.
+  const deleteAccount = async () => {
+    if (!auth?.currentUser) return
+    try {
+      await deleteUser(auth.currentUser)
+    } catch (e) {
+      if ((e as { code?: string }).code === 'auth/requires-recent-login') {
+        await reauthenticateWithPopup(auth.currentUser, new GoogleAuthProvider())
+        await deleteUser(auth.currentUser)
+      } else {
+        throw e
+      }
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, configured: isFirebaseConfigured, signIn, signOutUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, configured: isFirebaseConfigured, signIn, signOutUser, deleteAccount }}
+    >
       {children}
     </AuthContext.Provider>
   )

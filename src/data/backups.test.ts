@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { listBackups, pushBackup } from './backups'
+import { clearBackups, listBackups, pushBackup } from './backups'
 import { sampleData } from '../test/fixtures'
 
 describe('backups', () => {
@@ -23,6 +23,12 @@ describe('backups', () => {
 
   it('returns empty list for corrupt storage', () => {
     localStorage.setItem('renovator-backups', '{broken')
+    expect(listBackups()).toEqual([])
+  })
+
+  it('clearBackups removes all stored backups', () => {
+    pushBackup(sampleData())
+    clearBackups()
     expect(listBackups()).toEqual([])
   })
 })

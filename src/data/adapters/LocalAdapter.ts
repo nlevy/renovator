@@ -35,3 +35,8 @@ export class LocalAdapter implements StorageAdapter {
     this.storage.setItem(KEY, JSON.stringify(data))
   }
 }
+
+/** Removes the guest dataset from this browser. */
+export function clearLocalData(storage: Storage = localStorage): void {
+  storage.removeItem(KEY)
+}
