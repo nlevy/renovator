@@ -58,8 +58,15 @@ export async function stopSync(): Promise<void> {
   if (saveTimer) {
     clearTimeout(saveTimer)
     saveTimer = null
-    // flush any pending change so nothing is lost on teardown
-    if (adapter) await adapter.save(extractData(useStore.getState()))
+    // flush any pending change so nothing is lost on teardown; best-effort,
+    // since e.g. a cloud write right after sign-out will be rejected
+    if (adapter) {
+      try {
+        await adapter.save(extractData(useStore.getState()))
+      } catch {
+        // ignore — teardown must not throw
+      }
+    }
   }
   adapter = null
 }

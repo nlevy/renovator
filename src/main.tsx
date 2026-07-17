@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { AuthProvider } from './auth/AuthProvider'
+import SyncManager from './data/SyncManager'
 import { initSync } from './data/sync'
 import './index.css'
 
@@ -11,7 +12,9 @@ function render() {
     <StrictMode>
       <BrowserRouter>
         <AuthProvider>
-          <App />
+          <SyncManager>
+            <App />
+          </SyncManager>
         </AuthProvider>
       </BrowserRouter>
     </StrictMode>,
