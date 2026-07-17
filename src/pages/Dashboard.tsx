@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import ImportButton from '../components/ImportButton'
 import { buildDashboard, type EventType } from '../domain/dashboard'
 import { useStore } from '../store/useStore'
 import { formatCurrency, formatDate } from '../utils/format'
@@ -32,14 +33,21 @@ export default function Dashboard() {
         <h2 className="mb-4 text-lg font-semibold">לוח בקרה</h2>
         <div className="rounded-lg bg-white p-6 text-center text-slate-500 shadow-sm">
           <p className="mb-3">ברוכים הבאים! הפרויקט עדיין ריק.</p>
-          <div className="flex justify-center gap-2">
+          <div className="flex flex-wrap justify-center gap-2">
             <Link to="/tasks" className="rounded-md bg-teal-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-teal-700">
               הוספת משימה
             </Link>
             <Link to="/purchases" className="rounded-md border border-teal-600 px-4 py-1.5 text-sm font-medium text-teal-700 hover:bg-teal-50">
               הוספת רכישה
             </Link>
+            <ImportButton
+              confirmReplace={false}
+              className="rounded-md border border-slate-300 px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              ייבוא מקובץ
+            </ImportButton>
           </div>
+          <p className="mt-3 text-xs text-slate-400">כבר יש לכם קובץ גיבוי? ייבאו אותו כדי להמשיך מאיפה שהפסקתם.</p>
         </div>
       </div>
     )
