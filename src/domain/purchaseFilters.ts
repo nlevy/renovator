@@ -6,10 +6,11 @@ export type PurchaseSort = 'updated' | 'date' | 'price' | 'remaining' | 'title' 
 
 export interface PurchaseFilters {
   search: string
-  status: PurchaseStatus | 'all'
-  categoryId: string | 'all'
-  roomId: string | 'all'
-  vendorId: string | 'all'
+  // multi-select: an empty array means "no filter" (match all)
+  statuses: PurchaseStatus[]
+  categoryIds: string[]
+  roomIds: string[]
+  vendorIds: string[]
   sort: PurchaseSort
   // when omitted, the sort key's natural direction is used
   dir?: SortDir
@@ -17,10 +18,10 @@ export interface PurchaseFilters {
 
 export const defaultPurchaseFilters: PurchaseFilters = {
   search: '',
-  status: 'all',
-  categoryId: 'all',
-  roomId: 'all',
-  vendorId: 'all',
+  statuses: [],
+  categoryIds: [],
+  roomIds: [],
+  vendorIds: [],
   sort: 'updated',
 }
 
@@ -49,10 +50,16 @@ const statusOrder: Record<PurchaseStatus, number> = {
 }
 
 function matches(purchase: Purchase, filters: PurchaseFilters): boolean {
-  if (filters.status !== 'all' && purchase.status !== filters.status) return false
-  if (filters.categoryId !== 'all' && purchase.categoryId !== filters.categoryId) return false
-  if (filters.roomId !== 'all' && purchase.roomId !== filters.roomId) return false
-  if (filters.vendorId !== 'all' && purchase.vendorId !== filters.vendorId) return false
+  if (filters.statuses.length && !filters.statuses.includes(purchase.status)) return false
+  if (
+    filters.categoryIds.length &&
+    !(purchase.categoryId && filters.categoryIds.includes(purchase.categoryId))
+  )
+    return false
+  if (filters.roomIds.length && !(purchase.roomId && filters.roomIds.includes(purchase.roomId)))
+    return false
+  if (filters.vendorIds.length && !(purchase.vendorId && filters.vendorIds.includes(purchase.vendorId)))
+    return false
   const query = filters.search.trim().toLowerCase()
   if (query) {
     const haystack = `${purchase.title} ${purchase.notes}`.toLowerCase()

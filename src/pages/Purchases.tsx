@@ -3,6 +3,7 @@ import PaidProgress from '../components/PaidProgress'
 import { PurchaseStatusBadge } from '../components/StatusBadge'
 import PurchaseFormModal from '../components/PurchaseFormModal'
 import Button from '../components/ui/Button'
+import MultiSelect from '../components/ui/MultiSelect'
 import { Select, TextInput } from '../components/ui/fields'
 import { purchaseStatusLabels } from '../domain/labels'
 import type { Purchase, PurchaseStatus } from '../domain/schemas'
@@ -25,11 +26,6 @@ const sortLabels: Record<PurchaseSort, string> = {
   title: 'שם',
   status: 'סטטוס',
 }
-
-const statusFilterOptions = [
-  { value: 'all', label: 'כל הסטטוסים' },
-  ...(Object.keys(purchaseStatusLabels) as PurchaseStatus[]).map((s) => ({ value: s, label: purchaseStatusLabels[s] })),
-]
 
 const statusSelectOptions = (Object.keys(purchaseStatusLabels) as PurchaseStatus[]).map((s) => ({
   value: s,
@@ -79,20 +75,23 @@ export default function Purchases() {
           onChange={(e) => setFilter('search', e.target.value)}
           className="col-span-2 lg:col-span-1"
         />
-        <Select
-          options={statusFilterOptions}
-          value={filters.status}
-          onChange={(e) => setFilter('status', e.target.value as PurchaseFilters['status'])}
+        <MultiSelect
+          allLabel="כל הסטטוסים"
+          options={statusSelectOptions}
+          selected={filters.statuses}
+          onChange={(v) => setFilter('statuses', v as PurchaseStatus[])}
         />
-        <Select
-          options={[{ value: 'all', label: 'כל הקטגוריות' }, ...categories.map((c) => ({ value: c.id, label: c.name }))]}
-          value={filters.categoryId}
-          onChange={(e) => setFilter('categoryId', e.target.value)}
+        <MultiSelect
+          allLabel="כל הקטגוריות"
+          options={categories.map((c) => ({ value: c.id, label: c.name }))}
+          selected={filters.categoryIds}
+          onChange={(v) => setFilter('categoryIds', v)}
         />
-        <Select
-          options={[{ value: 'all', label: 'כל החדרים' }, ...rooms.map((r) => ({ value: r.id, label: r.name }))]}
-          value={filters.roomId}
-          onChange={(e) => setFilter('roomId', e.target.value)}
+        <MultiSelect
+          allLabel="כל החדרים"
+          options={rooms.map((r) => ({ value: r.id, label: r.name }))}
+          selected={filters.roomIds}
+          onChange={(v) => setFilter('roomIds', v)}
         />
       </div>
 

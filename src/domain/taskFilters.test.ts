@@ -13,20 +13,30 @@ describe('filterAndSortTasks', () => {
     expect(filterAndSortTasks(tasks, defaultTaskFilters)).toHaveLength(3)
   })
 
-  it('filters by status', () => {
-    const result = filterAndSortTasks(tasks, { ...defaultTaskFilters, status: 'in_progress' })
+  it('filters by a single status', () => {
+    const result = filterAndSortTasks(tasks, { ...defaultTaskFilters, statuses: ['in_progress'] })
     expect(result.map((t) => t.title)).toEqual(['אינסטלציה במטבח'])
+  })
+
+  it('filters by multiple statuses (OR)', () => {
+    const result = filterAndSortTasks(tasks, { ...defaultTaskFilters, statuses: ['in_progress', 'done'] })
+    expect(result.map((t) => t.title).sort()).toEqual(['אינסטלציה במטבח', 'צביעת סלון'].sort())
   })
 
   it('filters by the scheduled status', () => {
     const scheduled = task({ title: 'ריצוף מתוזמן', status: 'scheduled', startDate: '2026-09-01' })
-    const result = filterAndSortTasks([...tasks, scheduled], { ...defaultTaskFilters, status: 'scheduled' })
+    const result = filterAndSortTasks([...tasks, scheduled], { ...defaultTaskFilters, statuses: ['scheduled'] })
     expect(result.map((t) => t.title)).toEqual(['ריצוף מתוזמן'])
   })
 
   it('filters by category and room', () => {
-    const result = filterAndSortTasks(tasks, { ...defaultTaskFilters, categoryId: 'plumbing', roomId: 'kitchen' })
+    const result = filterAndSortTasks(tasks, { ...defaultTaskFilters, categoryIds: ['plumbing'], roomIds: ['kitchen'] })
     expect(result).toHaveLength(1)
+  })
+
+  it('filters by multiple categories (OR)', () => {
+    const result = filterAndSortTasks(tasks, { ...defaultTaskFilters, categoryIds: ['paint', 'electric'] })
+    expect(result.map((t) => t.title).sort()).toEqual(['החלפת נורות', 'צביעת סלון'].sort())
   })
 
   it('searches across title, description and notes', () => {

@@ -10,11 +10,16 @@ describe('filterAndSortPurchases', () => {
   ]
 
   it('filters by status', () => {
-    expect(filterAndSortPurchases(purchases, { ...defaultPurchaseFilters, status: 'ordered' }).map((p) => p.title)).toEqual(['ברז למטבח'])
+    expect(filterAndSortPurchases(purchases, { ...defaultPurchaseFilters, statuses: ['ordered'] }).map((p) => p.title)).toEqual(['ברז למטבח'])
+  })
+
+  it('filters by multiple statuses (OR)', () => {
+    const result = filterAndSortPurchases(purchases, { ...defaultPurchaseFilters, statuses: ['ordered', 'to_buy'] })
+    expect(result.map((p) => p.title).sort()).toEqual(['ברז למטבח', 'תנור'].sort())
   })
 
   it('filters by vendor', () => {
-    expect(filterAndSortPurchases(purchases, { ...defaultPurchaseFilters, vendorId: 'v1' })).toHaveLength(1)
+    expect(filterAndSortPurchases(purchases, { ...defaultPurchaseFilters, vendorIds: ['v1'] })).toHaveLength(1)
   })
 
   it('searches title and notes', () => {

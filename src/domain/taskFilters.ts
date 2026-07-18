@@ -6,10 +6,11 @@ export type SortDir = 'asc' | 'desc'
 
 export interface TaskFilters {
   search: string
-  status: TaskStatus | 'all'
-  categoryId: string | 'all'
-  roomId: string | 'all'
-  contactId: string | 'all'
+  // multi-select: an empty array means "no filter" (match all)
+  statuses: TaskStatus[]
+  categoryIds: string[]
+  roomIds: string[]
+  contactIds: string[]
   sort: TaskSort
   // when omitted, the sort key's natural direction is used
   dir?: SortDir
@@ -17,10 +18,10 @@ export interface TaskFilters {
 
 export const defaultTaskFilters: TaskFilters = {
   search: '',
-  status: 'all',
-  categoryId: 'all',
-  roomId: 'all',
-  contactId: 'all',
+  statuses: [],
+  categoryIds: [],
+  roomIds: [],
+  contactIds: [],
   sort: 'updated',
 }
 
@@ -51,10 +52,12 @@ const statusOrder: Record<TaskStatus, number> = {
 }
 
 function matches(task: Task, filters: TaskFilters): boolean {
-  if (filters.status !== 'all' && task.status !== filters.status) return false
-  if (filters.categoryId !== 'all' && task.categoryId !== filters.categoryId) return false
-  if (filters.roomId !== 'all' && task.roomId !== filters.roomId) return false
-  if (filters.contactId !== 'all' && task.contactId !== filters.contactId) return false
+  if (filters.statuses.length && !filters.statuses.includes(task.status)) return false
+  if (filters.categoryIds.length && !(task.categoryId && filters.categoryIds.includes(task.categoryId)))
+    return false
+  if (filters.roomIds.length && !(task.roomId && filters.roomIds.includes(task.roomId))) return false
+  if (filters.contactIds.length && !(task.contactId && filters.contactIds.includes(task.contactId)))
+    return false
   const query = filters.search.trim().toLowerCase()
   if (query) {
     const haystack = `${task.title} ${task.description} ${task.notes}`.toLowerCase()
