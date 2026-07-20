@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react'
 import PaidProgress from '../components/PaidProgress'
-import { PurchaseStatusBadge } from '../components/StatusBadge'
+import { MoveTimingBadge, PurchaseStatusBadge } from '../components/StatusBadge'
 import PurchaseFormModal from '../components/PurchaseFormModal'
 import Button from '../components/ui/Button'
 import MultiSelect from '../components/ui/MultiSelect'
 import { Select, TextInput } from '../components/ui/fields'
-import { purchaseStatusLabels } from '../domain/labels'
-import type { Purchase, PurchaseStatus } from '../domain/schemas'
+import { moveTimingLabels, purchaseStatusLabels } from '../domain/labels'
+import type { MoveTiming, Purchase, PurchaseStatus } from '../domain/schemas'
 import {
   defaultPurchaseFilters,
   filterAndSortPurchases,
@@ -30,6 +30,11 @@ const sortLabels: Record<PurchaseSort, string> = {
 const statusSelectOptions = (Object.keys(purchaseStatusLabels) as PurchaseStatus[]).map((s) => ({
   value: s,
   label: purchaseStatusLabels[s],
+}))
+
+const moveTimingFilterOptions = (Object.keys(moveTimingLabels) as MoveTiming[]).map((v) => ({
+  value: v,
+  label: moveTimingLabels[v],
 }))
 
 const sortOptions = (Object.keys(sortLabels) as PurchaseSort[]).map((s) => ({ value: s, label: sortLabels[s] }))
@@ -68,12 +73,12 @@ export default function Purchases() {
         <Button onClick={() => setCreating(true)}>+ רכישה חדשה</Button>
       </div>
 
-      <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         <TextInput
           placeholder="חיפוש…"
           value={filters.search}
           onChange={(e) => setFilter('search', e.target.value)}
-          className="col-span-2 lg:col-span-1"
+          className="col-span-2 sm:col-span-1"
         />
         <MultiSelect
           allLabel="כל הסטטוסים"
@@ -92,6 +97,12 @@ export default function Purchases() {
           options={rooms.map((r) => ({ value: r.id, label: r.name }))}
           selected={filters.roomIds}
           onChange={(v) => setFilter('roomIds', v)}
+        />
+        <MultiSelect
+          allLabel="ביחס למעבר"
+          options={moveTimingFilterOptions}
+          selected={filters.moveTimings}
+          onChange={(v) => setFilter('moveTimings', v as MoveTiming[])}
         />
       </div>
 
@@ -142,6 +153,7 @@ export default function Purchases() {
                   <span className="font-medium">{purchase.title}</span>
                   {purchase.quantity > 1 && <span className="text-xs text-slate-400">×{purchase.quantity}</span>}
                   <PurchaseStatusBadge status={purchase.status} />
+                  <MoveTimingBadge timing={purchase.moveTiming} />
                   {isOverdue(purchase) && <span className="text-xs font-medium text-amber-600">באיחור</span>}
                 </div>
                 <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-500">

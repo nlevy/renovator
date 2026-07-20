@@ -1,6 +1,6 @@
 import { effectivePrice, paidAmount } from './derive'
 import type { SortDir } from './taskFilters'
-import type { Purchase, PurchaseStatus } from './schemas'
+import type { MoveTiming, Purchase, PurchaseStatus } from './schemas'
 
 export type PurchaseSort = 'updated' | 'date' | 'price' | 'remaining' | 'title' | 'status'
 
@@ -11,6 +11,7 @@ export interface PurchaseFilters {
   categoryIds: string[]
   roomIds: string[]
   vendorIds: string[]
+  moveTimings: MoveTiming[]
   sort: PurchaseSort
   // when omitted, the sort key's natural direction is used
   dir?: SortDir
@@ -22,6 +23,7 @@ export const defaultPurchaseFilters: PurchaseFilters = {
   categoryIds: [],
   roomIds: [],
   vendorIds: [],
+  moveTimings: [],
   sort: 'updated',
 }
 
@@ -60,6 +62,7 @@ function matches(purchase: Purchase, filters: PurchaseFilters): boolean {
     return false
   if (filters.vendorIds.length && !(purchase.vendorId && filters.vendorIds.includes(purchase.vendorId)))
     return false
+  if (filters.moveTimings.length && !filters.moveTimings.includes(purchase.moveTiming)) return false
   const query = filters.search.trim().toLowerCase()
   if (query) {
     const haystack = `${purchase.title} ${purchase.notes}`.toLowerCase()

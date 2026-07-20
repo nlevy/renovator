@@ -40,6 +40,7 @@ describe('sync controller (guest mode)', () => {
       description: '',
       status: 'not_started',
       payments: [],
+      moveTiming: 'either',
       dependsOn: [],
       notes: '',
     })

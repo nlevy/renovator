@@ -1,8 +1,7 @@
 import { addDays, format } from 'date-fns'
 import { budgetTotals, isCancelled, type BudgetTotals } from './derive'
 import { isPurchaseOverdue } from './purchaseFilters'
-import { purchaseStatusLabels, taskStatusLabels } from './labels'
-import type { Purchase, PurchaseStatus, Task, TaskStatus } from './schemas'
+import type { MoveTiming, Purchase, Task } from './schemas'
 
 export type EventType = 'start' | 'end' | 'order' | 'delivery'
 
@@ -27,6 +26,9 @@ export interface StatusCount<S extends string> {
   count: number
 }
 
+// dashboard breakdown scope relative to the move
+export type TimingScope = 'all' | 'before' | 'after'
+
 export interface Dashboard {
   totalTasks: number
   doneTasks: number
@@ -38,18 +40,19 @@ export interface Dashboard {
   budgetPaidPct: number
   upcoming: UpcomingEvent[]
   attention: AttentionItem[]
-  taskStatusCounts: StatusCount<TaskStatus>[]
-  purchaseStatusCounts: StatusCount<PurchaseStatus>[]
 }
 
-function countByStatus<S extends string>(
-  items: Array<{ status: S }>,
+// count items per status, optionally limited to a move-timing scope
+export function statusBreakdown<S extends string>(
+  items: Array<{ status: S; moveTiming: MoveTiming }>,
   labels: Record<S, string>,
+  scope: TimingScope = 'all',
 ): StatusCount<S>[] {
+  const scoped = scope === 'all' ? items : items.filter((i) => i.moveTiming === scope)
   return (Object.keys(labels) as S[]).map((status) => ({
     status,
     label: labels[status],
-    count: items.filter((i) => i.status === status).length,
+    count: scoped.filter((i) => i.status === status).length,
   }))
 }
 
@@ -113,7 +116,5 @@ export function buildDashboard(
     budgetPaidPct: budget.expected ? Math.round((budget.paid / budget.expected) * 100) : 0,
     upcoming,
     attention,
-    taskStatusCounts: countByStatus(tasks, taskStatusLabels),
-    purchaseStatusCounts: countByStatus(purchases, purchaseStatusLabels),
   }
 }

@@ -1,4 +1,4 @@
-import type { PaymentMethod, PurchaseStatus, TaskStatus } from './schemas'
+import type { MoveTiming, PaymentMethod, PurchaseStatus, TaskStatus } from './schemas'
 
 export const taskStatusLabels: Record<TaskStatus, string> = {
   not_started: 'לא התחיל',
@@ -29,3 +29,9 @@ export const paymentStatusLabels = {
   partial: 'שולם חלקית',
   paid: 'שולם',
 } as const
+
+export const moveTimingLabels: Record<MoveTiming, string> = {
+  before: 'לפני המעבר',
+  after: 'אחרי המעבר',
+  either: 'לא משנה',
+}

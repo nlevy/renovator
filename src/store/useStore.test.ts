@@ -23,6 +23,7 @@ describe('useStore', () => {
       description: '',
       status: 'not_started',
       payments: [],
+      moveTiming: 'either',
       dependsOn: [],
       notes: '',
     })
@@ -39,6 +40,7 @@ describe('useStore', () => {
       status: 'ordered',
       quantity: 1,
       payments: [],
+      moveTiming: 'either',
       notes: '',
       price: 6000,
     })
@@ -65,6 +67,7 @@ describe('useStore', () => {
       status: 'not_started',
       contactId: contact.id,
       payments: [],
+      moveTiming: 'either',
       dependsOn: [],
       notes: '',
     })
@@ -79,6 +82,7 @@ describe('useStore', () => {
       description: '',
       status: 'done',
       payments: [],
+      moveTiming: 'either',
       dependsOn: [],
       notes: '',
     })
@@ -87,6 +91,7 @@ describe('useStore', () => {
       description: '',
       status: 'not_started',
       payments: [],
+      moveTiming: 'either',
       dependsOn: [demolition.id],
       notes: '',
     })

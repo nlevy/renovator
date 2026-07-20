@@ -1,7 +1,8 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ImportButton from '../components/ImportButton'
-import { buildDashboard, type EventType } from '../domain/dashboard'
+import { buildDashboard, statusBreakdown, type EventType, type TimingScope } from '../domain/dashboard'
+import { moveTimingLabels, purchaseStatusLabels, taskStatusLabels } from '../domain/labels'
 import { useStore } from '../store/useStore'
 import { formatCurrency, formatDate } from '../utils/format'
 
@@ -11,6 +12,12 @@ const eventTypeLabels: Record<EventType, string> = {
   order: 'הזמנה',
   delivery: 'אספקה',
 }
+
+const timingScopes: { value: TimingScope; label: string }[] = [
+  { value: 'all', label: 'הכל' },
+  { value: 'before', label: moveTimingLabels.before },
+  { value: 'after', label: moveTimingLabels.after },
+]
 
 const todayIso = () => new Date().toISOString().slice(0, 10)
 
@@ -26,6 +33,16 @@ export default function Dashboard() {
   const { tasks, purchases } = useStore()
   const today = todayIso()
   const d = useMemo(() => buildDashboard(tasks, purchases, today), [tasks, purchases, today])
+
+  const [timingScope, setTimingScope] = useState<TimingScope>('all')
+  const taskStatusCounts = useMemo(
+    () => statusBreakdown(tasks, taskStatusLabels, timingScope),
+    [tasks, timingScope],
+  )
+  const purchaseStatusCounts = useMemo(
+    () => statusBreakdown(purchases, purchaseStatusLabels, timingScope),
+    [purchases, timingScope],
+  )
 
   if (tasks.length === 0 && purchases.length === 0) {
     return (
@@ -152,9 +169,27 @@ export default function Dashboard() {
         </section>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <StatusBreakdown title="פילוח משימות לפי סטטוס" counts={d.taskStatusCounts} />
-        <StatusBreakdown title="פילוח רכישות לפי סטטוס" counts={d.purchaseStatusCounts} />
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="font-semibold">פילוח לפי סטטוס</h3>
+          <div className="flex rounded-md border border-slate-200 p-0.5 text-sm">
+            {timingScopes.map((s) => (
+              <button
+                key={s.value}
+                onClick={() => setTimingScope(s.value)}
+                className={`rounded px-3 py-1 ${
+                  timingScope === s.value ? 'bg-teal-600 text-white' : 'text-slate-600'
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <StatusBreakdown title="משימות" counts={taskStatusCounts} />
+          <StatusBreakdown title="רכישות" counts={purchaseStatusCounts} />
+        </div>
       </div>
     </div>
   )
