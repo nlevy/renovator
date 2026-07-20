@@ -13,8 +13,10 @@ describe('buildDashboard', () => {
     task({ title: 'מבוטל', status: 'cancelled', price: 9999 }),
   ]
   const purchases = [
-    purchase({ title: 'ברז', status: 'ordered', deliveryDate: '2026-08-14', price: 800, payments: [payment(800)] }),
+    purchase({ title: 'ברז', status: 'delivered', deliveryDate: '2026-08-14', price: 800, payments: [payment(800)] }),
     purchase({ title: 'תנור', status: 'to_buy', orderDate: '2026-08-01' }),
+    purchase({ title: 'ריצוף', status: 'ordered', deliveryDate: '2026-08-13' }),
+    purchase({ title: 'מבוטל', status: 'cancelled' }),
   ]
 
   it('computes task progress excluding cancelled tasks', () => {
@@ -22,6 +24,25 @@ describe('buildDashboard', () => {
     expect(d.totalTasks).toBe(4)
     expect(d.doneTasks).toBe(1)
     expect(d.taskProgressPct).toBe(25)
+  })
+
+  it('computes purchase-supplied progress excluding cancelled purchases', () => {
+    const d = buildDashboard(tasks, purchases, today)
+    expect(d.totalPurchases).toBe(3) // delivered + to_buy + ordered, excluding cancelled
+    expect(d.deliveredPurchases).toBe(1)
+    expect(d.purchaseProgressPct).toBe(33)
+  })
+
+  it('counts items by status (including cancelled) for the breakdown', () => {
+    const d = buildDashboard(tasks, purchases, today)
+    const taskCount = (s: string) => d.taskStatusCounts.find((c) => c.status === s)?.count
+    expect(taskCount('done')).toBe(1)
+    expect(taskCount('in_progress')).toBe(1)
+    expect(taskCount('cancelled')).toBe(1)
+    expect(taskCount('scheduled')).toBe(0)
+    const purchaseCount = (s: string) => d.purchaseStatusCounts.find((c) => c.status === s)?.count
+    expect(purchaseCount('delivered')).toBe(1)
+    expect(purchaseCount('cancelled')).toBe(1)
   })
 
   it('computes budget paid percentage', () => {
@@ -36,7 +57,7 @@ describe('buildDashboard', () => {
     const d = buildDashboard(tasks, purchases, today)
     expect(d.upcoming.map((e) => [e.title, e.type])).toEqual([
       ['צבע', 'start'],
-      ['ברז', 'delivery'],
+      ['ריצוף', 'delivery'],
     ])
   })
 

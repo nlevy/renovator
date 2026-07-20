@@ -1,7 +1,8 @@
 import { addDays, format } from 'date-fns'
 import { budgetTotals, isCancelled, type BudgetTotals } from './derive'
 import { isPurchaseOverdue } from './purchaseFilters'
-import type { Purchase, Task } from './schemas'
+import { purchaseStatusLabels, taskStatusLabels } from './labels'
+import type { Purchase, PurchaseStatus, Task, TaskStatus } from './schemas'
 
 export type EventType = 'start' | 'end' | 'order' | 'delivery'
 
@@ -20,14 +21,36 @@ export interface AttentionItem {
   reason: 'overdue' | 'stuck'
 }
 
+export interface StatusCount<S extends string> {
+  status: S
+  label: string
+  count: number
+}
+
 export interface Dashboard {
   totalTasks: number
   doneTasks: number
   taskProgressPct: number
+  totalPurchases: number
+  deliveredPurchases: number
+  purchaseProgressPct: number
   budget: BudgetTotals
   budgetPaidPct: number
   upcoming: UpcomingEvent[]
   attention: AttentionItem[]
+  taskStatusCounts: StatusCount<TaskStatus>[]
+  purchaseStatusCounts: StatusCount<PurchaseStatus>[]
+}
+
+function countByStatus<S extends string>(
+  items: Array<{ status: S }>,
+  labels: Record<S, string>,
+): StatusCount<S>[] {
+  return (Object.keys(labels) as S[]).map((status) => ({
+    status,
+    label: labels[status],
+    count: items.filter((i) => i.status === status).length,
+  }))
 }
 
 const taskActive = (s: string) => s !== 'done' && s !== 'cancelled'
@@ -41,6 +64,8 @@ export function buildDashboard(
 ): Dashboard {
   const activeTasks = tasks.filter((t) => !isCancelled(t))
   const doneTasks = activeTasks.filter((t) => t.status === 'done').length
+  const activePurchases = purchases.filter((p) => !isCancelled(p))
+  const deliveredPurchases = activePurchases.filter((p) => p.status === 'delivered').length
   const budget = budgetTotals([...tasks, ...purchases], today)
 
   const windowEnd = format(addDays(new Date(today), windowDays), 'yyyy-MM-dd')
@@ -79,9 +104,16 @@ export function buildDashboard(
     totalTasks: activeTasks.length,
     doneTasks,
     taskProgressPct: activeTasks.length ? Math.round((doneTasks / activeTasks.length) * 100) : 0,
+    totalPurchases: activePurchases.length,
+    deliveredPurchases,
+    purchaseProgressPct: activePurchases.length
+      ? Math.round((deliveredPurchases / activePurchases.length) * 100)
+      : 0,
     budget,
     budgetPaidPct: budget.expected ? Math.round((budget.paid / budget.expected) * 100) : 0,
     upcoming,
     attention,
+    taskStatusCounts: countByStatus(tasks, taskStatusLabels),
+    purchaseStatusCounts: countByStatus(purchases, purchaseStatusLabels),
   }
 }

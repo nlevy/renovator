@@ -74,16 +74,28 @@ export default function Dashboard() {
         </div>
       </Link>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-lg bg-white p-4 shadow-sm">
-          <div className="flex items-baseline justify-between">
-            <span className="text-sm text-slate-500">משימות שהושלמו</span>
-            <span className="font-bold">
-              {d.doneTasks}/{d.totalTasks}
-            </span>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div className="grid grid-cols-2 gap-4 rounded-lg bg-white p-4 shadow-sm">
+          <div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-slate-500">משימות שהושלמו</span>
+              <span className="font-bold">
+                {d.doneTasks}/{d.totalTasks}
+              </span>
+            </div>
+            <ProgressBar pct={d.taskProgressPct} color="bg-teal-500" />
+            <div className="mt-1 text-xs text-slate-400">{d.taskProgressPct}%</div>
           </div>
-          <ProgressBar pct={d.taskProgressPct} color="bg-teal-500" />
-          <div className="mt-1 text-xs text-slate-400">{d.taskProgressPct}%</div>
+          <div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-slate-500">רכישות שסופקו</span>
+              <span className="font-bold">
+                {d.deliveredPurchases}/{d.totalPurchases}
+              </span>
+            </div>
+            <ProgressBar pct={d.purchaseProgressPct} color="bg-blue-500" />
+            <div className="mt-1 text-xs text-slate-400">{d.purchaseProgressPct}%</div>
+          </div>
         </div>
         <div className="rounded-lg bg-white p-4 shadow-sm">
           <div className="flex items-baseline justify-between">
@@ -139,6 +151,37 @@ export default function Dashboard() {
           )}
         </section>
       </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <StatusBreakdown title="פילוח משימות לפי סטטוס" counts={d.taskStatusCounts} />
+        <StatusBreakdown title="פילוח רכישות לפי סטטוס" counts={d.purchaseStatusCounts} />
+      </div>
     </div>
+  )
+}
+
+function StatusBreakdown({
+  title,
+  counts,
+}: {
+  title: string
+  counts: { label: string; count: number }[]
+}) {
+  return (
+    <section className="rounded-lg bg-white p-4 shadow-sm">
+      <h3 className="mb-2 font-semibold">{title}</h3>
+      <div className="flex flex-wrap gap-2">
+        {counts.map((c) => (
+          <span
+            key={c.label}
+            className={`rounded-full px-2.5 py-1 text-sm ${
+              c.count ? 'bg-slate-100 text-slate-700' : 'bg-slate-50 text-slate-400'
+            }`}
+          >
+            {c.label} <span className="font-semibold">{c.count}</span>
+          </span>
+        ))}
+      </div>
+    </section>
   )
 }
