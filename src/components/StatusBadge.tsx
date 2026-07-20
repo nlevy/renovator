@@ -1,5 +1,5 @@
-import { purchaseStatusLabels, taskStatusLabels } from '../domain/labels'
-import type { PurchaseStatus, TaskStatus } from '../domain/schemas'
+import { moveTimingLabels, purchaseStatusLabels, taskStatusLabels } from '../domain/labels'
+import type { MoveTiming, PurchaseStatus, TaskStatus } from '../domain/schemas'
 
 type Tone = 'slate' | 'blue' | 'violet' | 'amber' | 'red' | 'green' | 'gray'
 
@@ -43,4 +43,10 @@ function Badge({ tone, label }: { tone: Tone; label: string }) {
       {label}
     </span>
   )
+}
+
+// only meaningful for before/after — "either" renders nothing
+export function MoveTimingBadge({ timing }: { timing: MoveTiming }) {
+  if (timing === 'either') return null
+  return <Badge tone={timing === 'before' ? 'violet' : 'blue'} label={moveTimingLabels[timing]} />
 }

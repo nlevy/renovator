@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { taskStatusLabels } from '../domain/labels'
-import type { Task, TaskStatus } from '../domain/schemas'
+import { moveTimingLabels, taskStatusLabels } from '../domain/labels'
+import type { MoveTiming, Task, TaskStatus } from '../domain/schemas'
 import { useStore, type NewTask } from '../store/useStore'
 import PaymentsEditor from './PaymentsEditor'
 import Button from './ui/Button'
@@ -12,12 +12,18 @@ const statusOptions = (Object.keys(taskStatusLabels) as TaskStatus[]).map((value
   label: taskStatusLabels[value],
 }))
 
+const moveTimingOptions = (Object.keys(moveTimingLabels) as MoveTiming[]).map((value) => ({
+  value,
+  label: moveTimingLabels[value],
+}))
+
 function blankDraft(): NewTask {
   return {
     title: '',
     description: '',
     status: 'not_started',
     payments: [],
+    moveTiming: 'either',
     dependsOn: [],
     notes: '',
   }
@@ -123,6 +129,13 @@ export default function TaskFormModal({ task, onClose }: Props) {
               options={roomOptions}
               value={draft.roomId ?? ''}
               onChange={(e) => set('roomId', e.target.value || undefined)}
+            />
+          </Field>
+          <Field label="ביחס למעבר">
+            <Select
+              options={moveTimingOptions}
+              value={draft.moveTiming}
+              onChange={(e) => set('moveTiming', e.target.value as MoveTiming)}
             />
           </Field>
         </div>

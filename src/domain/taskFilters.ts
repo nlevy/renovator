@@ -1,5 +1,5 @@
 import { effectivePrice, paidAmount } from './derive'
-import type { Task, TaskStatus } from './schemas'
+import type { MoveTiming, Task, TaskStatus } from './schemas'
 
 export type TaskSort = 'updated' | 'date' | 'price' | 'remaining' | 'title' | 'status'
 export type SortDir = 'asc' | 'desc'
@@ -11,6 +11,7 @@ export interface TaskFilters {
   categoryIds: string[]
   roomIds: string[]
   contactIds: string[]
+  moveTimings: MoveTiming[]
   sort: TaskSort
   // when omitted, the sort key's natural direction is used
   dir?: SortDir
@@ -22,6 +23,7 @@ export const defaultTaskFilters: TaskFilters = {
   categoryIds: [],
   roomIds: [],
   contactIds: [],
+  moveTimings: [],
   sort: 'updated',
 }
 
@@ -58,6 +60,7 @@ function matches(task: Task, filters: TaskFilters): boolean {
   if (filters.roomIds.length && !(task.roomId && filters.roomIds.includes(task.roomId))) return false
   if (filters.contactIds.length && !(task.contactId && filters.contactIds.includes(task.contactId)))
     return false
+  if (filters.moveTimings.length && !filters.moveTimings.includes(task.moveTiming)) return false
   const query = filters.search.trim().toLowerCase()
   if (query) {
     const haystack = `${task.title} ${task.description} ${task.notes}`.toLowerCase()

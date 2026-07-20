@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { purchaseStatusLabels } from '../domain/labels'
-import type { Purchase, PurchaseStatus } from '../domain/schemas'
+import { moveTimingLabels, purchaseStatusLabels } from '../domain/labels'
+import type { MoveTiming, Purchase, PurchaseStatus } from '../domain/schemas'
 import { useStore, type NewPurchase } from '../store/useStore'
 import PaymentsEditor from './PaymentsEditor'
 import Button from './ui/Button'
@@ -12,12 +12,18 @@ const statusOptions = (Object.keys(purchaseStatusLabels) as PurchaseStatus[]).ma
   label: purchaseStatusLabels[value],
 }))
 
+const moveTimingOptions = (Object.keys(moveTimingLabels) as MoveTiming[]).map((value) => ({
+  value,
+  label: moveTimingLabels[value],
+}))
+
 function blankDraft(): NewPurchase {
   return {
     title: '',
     status: 'to_buy',
     quantity: 1,
     payments: [],
+    moveTiming: 'either',
     notes: '',
   }
 }
@@ -121,6 +127,13 @@ export default function PurchaseFormModal({ purchase, onClose }: Props) {
               options={roomOptions}
               value={draft.roomId ?? ''}
               onChange={(e) => set('roomId', e.target.value || undefined)}
+            />
+          </Field>
+          <Field label="ביחס למעבר">
+            <Select
+              options={moveTimingOptions}
+              value={draft.moveTiming}
+              onChange={(e) => set('moveTiming', e.target.value as MoveTiming)}
             />
           </Field>
         </div>

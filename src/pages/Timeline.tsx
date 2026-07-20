@@ -36,8 +36,8 @@ export default function Timeline() {
     const start = parseISO(range.start)
     const total = differenceInCalendarDays(parseISO(range.end), start) + 1
     return eachWeekOfInterval({ start, end: parseISO(range.end) }, { weekStartsOn: 0 })
-      .map((w) => (differenceInCalendarDays(w, start) / total) * 100)
-      .filter((pct) => pct > 0 && pct < 100)
+      .map((w) => ({ offsetPct: (differenceInCalendarDays(w, start) / total) * 100, label: format(w, 'dd/MM') }))
+      .filter((w) => w.offsetPct > 0 && w.offsetPct < 100)
   }, [range])
 
   const totalDays = range ? differenceInCalendarDays(parseISO(range.end), parseISO(range.start)) + 1 : 0
@@ -84,7 +84,7 @@ export default function Timeline() {
           </div>
           <div className="flex">
             <div className="shrink-0" style={{ width: '9rem' }}>
-              <div className="h-6" />
+              <div className="h-10" />
               {items.map((item) => (
                 <div key={item.id} className="flex h-9 items-center gap-1 pe-2 text-sm">
                   <span className="truncate" title={item.title}>
@@ -97,25 +97,30 @@ export default function Timeline() {
 
             <div className="flex-1 overflow-x-auto">
               <div className="relative" style={{ width: trackWidth, minWidth: '100%' }}>
-                <div className="relative h-6 border-b border-slate-100 text-xs text-slate-400">
+                <div className="relative h-10 border-b border-slate-100 text-slate-400">
                   {months.map((m, i) => (
-                    <span key={i} className="absolute whitespace-nowrap" style={{ insetInlineStart: `${m.offsetPct}%` }}>
+                    <span key={i} className="absolute top-0 whitespace-nowrap text-xs font-medium" style={{ insetInlineStart: `${m.offsetPct}%` }}>
                       {m.label}
+                    </span>
+                  ))}
+                  {weeks.map((w, i) => (
+                    <span key={i} className="absolute top-5 whitespace-nowrap text-[10px]" style={{ insetInlineStart: `${w.offsetPct}%` }}>
+                      {w.label}
                     </span>
                   ))}
                 </div>
 
-                {weeks.map((pct, i) => (
+                {weeks.map((w, i) => (
                   <div
                     key={i}
-                    className="pointer-events-none absolute bottom-0 top-6 w-px bg-slate-100"
-                    style={{ insetInlineStart: `${pct}%` }}
+                    className="pointer-events-none absolute bottom-0 top-10 w-px bg-slate-100"
+                    style={{ insetInlineStart: `${w.offsetPct}%` }}
                   />
                 ))}
 
                 {todayPct !== null && (
                   <div
-                    className="pointer-events-none absolute bottom-0 top-6 z-10 w-px bg-red-400"
+                    className="pointer-events-none absolute bottom-0 top-10 z-10 w-px bg-red-400"
                     style={{ insetInlineStart: `${todayPct}%` }}
                     title={`היום ${formatDate(today)}`}
                   />

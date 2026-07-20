@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { buildDashboard } from './dashboard'
+import { buildDashboard, statusBreakdown } from './dashboard'
+import { taskStatusLabels } from './labels'
 import { payment, purchase, task } from '../test/fixtures'
 
 const today = '2026-08-10'
@@ -33,18 +34,6 @@ describe('buildDashboard', () => {
     expect(d.purchaseProgressPct).toBe(33)
   })
 
-  it('counts items by status (including cancelled) for the breakdown', () => {
-    const d = buildDashboard(tasks, purchases, today)
-    const taskCount = (s: string) => d.taskStatusCounts.find((c) => c.status === s)?.count
-    expect(taskCount('done')).toBe(1)
-    expect(taskCount('in_progress')).toBe(1)
-    expect(taskCount('cancelled')).toBe(1)
-    expect(taskCount('scheduled')).toBe(0)
-    const purchaseCount = (s: string) => d.purchaseStatusCounts.find((c) => c.status === s)?.count
-    expect(purchaseCount('delivered')).toBe(1)
-    expect(purchaseCount('cancelled')).toBe(1)
-  })
-
   it('computes budget paid percentage', () => {
     const d = buildDashboard(tasks, purchases, today)
     // expected = 5000+10000+0+0 + 800+0 = 15800 ; paid = 5000+3000+800 = 8800
@@ -76,5 +65,38 @@ describe('buildDashboard', () => {
     expect(d.budgetPaidPct).toBe(0)
     expect(d.upcoming).toEqual([])
     expect(d.attention).toEqual([])
+  })
+})
+
+describe('statusBreakdown', () => {
+  const items = [
+    task({ status: 'done', moveTiming: 'before' }),
+    task({ status: 'in_progress', moveTiming: 'before' }),
+    task({ status: 'in_progress', moveTiming: 'after' }),
+    task({ status: 'not_started', moveTiming: 'either' }),
+    task({ status: 'cancelled', moveTiming: 'before' }),
+  ]
+  const count = (rows: { status: string; count: number }[], s: string) =>
+    rows.find((r) => r.status === s)?.count
+
+  it('counts every status (including cancelled) across all timings by default', () => {
+    const rows = statusBreakdown(items, taskStatusLabels)
+    expect(count(rows, 'in_progress')).toBe(2)
+    expect(count(rows, 'done')).toBe(1)
+    expect(count(rows, 'cancelled')).toBe(1)
+    expect(count(rows, 'scheduled')).toBe(0)
+  })
+
+  it('limits to before-move items', () => {
+    const rows = statusBreakdown(items, taskStatusLabels, 'before')
+    expect(count(rows, 'in_progress')).toBe(1)
+    expect(count(rows, 'done')).toBe(1)
+    expect(count(rows, 'not_started')).toBe(0)
+  })
+
+  it('limits to after-move items', () => {
+    const rows = statusBreakdown(items, taskStatusLabels, 'after')
+    expect(count(rows, 'in_progress')).toBe(1)
+    expect(count(rows, 'done')).toBe(0)
   })
 })

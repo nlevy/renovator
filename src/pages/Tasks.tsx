@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react'
 import PaidProgress from '../components/PaidProgress'
-import { TaskStatusBadge } from '../components/StatusBadge'
+import { MoveTimingBadge, TaskStatusBadge } from '../components/StatusBadge'
 import TaskFormModal from '../components/TaskFormModal'
 import Button from '../components/ui/Button'
 import MultiSelect from '../components/ui/MultiSelect'
 import { Select, TextInput } from '../components/ui/fields'
-import { taskStatusLabels } from '../domain/labels'
-import type { Task, TaskStatus } from '../domain/schemas'
+import { moveTimingLabels, taskStatusLabels } from '../domain/labels'
+import type { MoveTiming, Task, TaskStatus } from '../domain/schemas'
 import {
   defaultTaskFilters,
   filterAndSortTasks,
@@ -29,6 +29,11 @@ const sortLabels: Record<TaskSort, string> = {
 const statusSelectOptions = (Object.keys(taskStatusLabels) as TaskStatus[]).map((s) => ({
   value: s,
   label: taskStatusLabels[s],
+}))
+
+const moveTimingFilterOptions = (Object.keys(moveTimingLabels) as MoveTiming[]).map((v) => ({
+  value: v,
+  label: moveTimingLabels[v],
 }))
 
 const sortOptions = (Object.keys(sortLabels) as TaskSort[]).map((s) => ({ value: s, label: sortLabels[s] }))
@@ -63,12 +68,12 @@ export default function Tasks() {
         <Button onClick={() => setCreating(true)}>+ משימה חדשה</Button>
       </div>
 
-      <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         <TextInput
           placeholder="חיפוש…"
           value={filters.search}
           onChange={(e) => setFilter('search', e.target.value)}
-          className="col-span-2 lg:col-span-1"
+          className="col-span-2 sm:col-span-1"
         />
         <MultiSelect
           allLabel="כל הסטטוסים"
@@ -87,6 +92,12 @@ export default function Tasks() {
           options={rooms.map((r) => ({ value: r.id, label: r.name }))}
           selected={filters.roomIds}
           onChange={(v) => setFilter('roomIds', v)}
+        />
+        <MultiSelect
+          allLabel="ביחס למעבר"
+          options={moveTimingFilterOptions}
+          selected={filters.moveTimings}
+          onChange={(v) => setFilter('moveTimings', v as MoveTiming[])}
         />
       </div>
 
@@ -134,6 +145,7 @@ export default function Tasks() {
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{task.title}</span>
                   <TaskStatusBadge status={task.status} />
+                  <MoveTimingBadge timing={task.moveTiming} />
                 </div>
                 <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-500">
                   {task.categoryId && <span>{nameOf.cat.get(task.categoryId)}</span>}

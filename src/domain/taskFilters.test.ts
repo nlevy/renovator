@@ -39,6 +39,13 @@ describe('filterAndSortTasks', () => {
     expect(result.map((t) => t.title).sort()).toEqual(['החלפת נורות', 'צביעת סלון'].sort())
   })
 
+  it('filters by move timing', () => {
+    const before = task({ title: 'הריסה', moveTiming: 'before' })
+    const after = task({ title: 'וילונות', moveTiming: 'after' })
+    const result = filterAndSortTasks([...tasks, before, after], { ...defaultTaskFilters, moveTimings: ['before'] })
+    expect(result.map((t) => t.title)).toEqual(['הריסה'])
+  })
+
   it('searches across title, description and notes', () => {
     expect(filterAndSortTasks(tasks, { ...defaultTaskFilters, search: 'LED' })).toHaveLength(1)
     expect(filterAndSortTasks(tasks, { ...defaultTaskFilters, search: 'מטבח' }).map((t) => t.title)).toEqual([

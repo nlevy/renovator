@@ -17,6 +17,9 @@ export const PaymentSchema = z.object({
 export const TaskStatusSchema = z.enum(['not_started', 'scheduled', 'in_progress', 'stuck', 'done', 'cancelled'])
 export const PurchaseStatusSchema = z.enum(['to_buy', 'ordered', 'delivered', 'cancelled'])
 
+// timing relative to moving into the home
+export const MoveTimingSchema = z.enum(['before', 'after', 'either'])
+
 const payableFields = {
   id: z.string(),
   title: z.string().min(1),
@@ -25,6 +28,7 @@ const payableFields = {
   price: z.number().nonnegative().optional(),
   estimatedPrice: z.number().nonnegative().optional(),
   payments: z.array(PaymentSchema).default([]),
+  moveTiming: MoveTimingSchema.default('either'),
   notes: z.string().default(''),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -89,6 +93,7 @@ export type PaymentMethod = z.infer<typeof PaymentMethodSchema>
 export type Payment = z.infer<typeof PaymentSchema>
 export type TaskStatus = z.infer<typeof TaskStatusSchema>
 export type PurchaseStatus = z.infer<typeof PurchaseStatusSchema>
+export type MoveTiming = z.infer<typeof MoveTimingSchema>
 export type Task = z.infer<typeof TaskSchema>
 export type Purchase = z.infer<typeof PurchaseSchema>
 export type Contact = z.infer<typeof ContactSchema>
