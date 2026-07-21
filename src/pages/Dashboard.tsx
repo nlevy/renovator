@@ -126,6 +126,29 @@ export default function Dashboard() {
         </div>
       </div>
 
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="font-semibold">פילוח לפי סטטוס</h3>
+          <div className="flex rounded-md border border-slate-200 p-0.5 text-sm">
+            {timingScopes.map((s) => (
+              <button
+                key={s.value}
+                onClick={() => setTimingScope(s.value)}
+                className={`rounded px-3 py-1 ${
+                  timingScope === s.value ? 'bg-teal-600 text-white' : 'text-slate-600'
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <StatusBreakdown title="משימות" counts={taskStatusCounts} />
+          <StatusBreakdown title="רכישות" counts={purchaseStatusCounts} />
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <section className="rounded-lg bg-white p-4 shadow-sm">
           <h3 className="mb-2 font-semibold">השבוע הקרוב</h3>
@@ -167,29 +190,6 @@ export default function Dashboard() {
             </ul>
           )}
         </section>
-      </div>
-
-      <div>
-        <div className="mb-2 flex items-center justify-between">
-          <h3 className="font-semibold">פילוח לפי סטטוס</h3>
-          <div className="flex rounded-md border border-slate-200 p-0.5 text-sm">
-            {timingScopes.map((s) => (
-              <button
-                key={s.value}
-                onClick={() => setTimingScope(s.value)}
-                className={`rounded px-3 py-1 ${
-                  timingScope === s.value ? 'bg-teal-600 text-white' : 'text-slate-600'
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <StatusBreakdown title="משימות" counts={taskStatusCounts} />
-          <StatusBreakdown title="רכישות" counts={purchaseStatusCounts} />
-        </div>
       </div>
     </div>
   )
