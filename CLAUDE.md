@@ -50,6 +50,6 @@ There is no lint step; `tsc --noEmit` (part of `build`) is the type gate.
 
 ## Adding things — quick recipes
 
-- **A task/purchase status:** add to the enum in `schemas.ts`, the label map in `labels.ts`, the tone map in `components/StatusBadge.tsx`, and the sort-order map in the relevant `*Filters.ts`. TypeScript will flag every map you miss.
+- **A task/purchase status:** add to the enum in `schemas.ts`, the label map in `labels.ts`, the tone map in `components/StatusBadge.tsx`, and the sort-order map in the relevant `*Filters.ts`. TypeScript will flag every map you miss. Also classify it in the `*StatusPresets` map (open/closed) in the same `*Filters.ts` — a test asserts the two presets together cover every status.
 - **A sort option:** extend the `*Sort` union and `naturalDir` in `domain/*Filters.ts`, add a comparator case (and `isMissing` handling if some items lack the value), and a label in the page's `sortLabels`.
 - **A derived number for a view:** add a pure function in `src/domain` + test, then render it.

@@ -1,3 +1,4 @@
+import type { StatusPreset } from './statusPresets'
 import type { MoveTiming, PaymentMethod, PurchaseStatus, TaskStatus } from './schemas'
 
 export const taskStatusLabels: Record<TaskStatus, string> = {
@@ -34,4 +35,9 @@ export const moveTimingLabels: Record<MoveTiming, string> = {
   before: 'לפני המעבר',
   after: 'אחרי המעבר',
   either: 'לא משנה',
+}
+
+export const statusPresetLabels: Record<StatusPreset, string> = {
+  open: 'פתוחות',
+  closed: 'סגורות',
 }

@@ -17,3 +17,8 @@ export function formatDate(isoDate: string): string {
 export function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
 }
+
+// "12/40" while a filter narrows the list down, plain total otherwise
+export function formatCount(visible: number, total: number): string {
+  return visible === total ? `${total}` : `${visible}/${total}`
+}

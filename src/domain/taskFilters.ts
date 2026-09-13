@@ -1,4 +1,5 @@
 import { effectivePrice, paidAmount } from './derive'
+import type { StatusPresetMap } from './statusPresets'
 import type { MoveTiming, Task, TaskStatus } from './schemas'
 
 export type TaskSort = 'updated' | 'date' | 'price' | 'remaining' | 'title' | 'status'
@@ -25,6 +26,12 @@ export const defaultTaskFilters: TaskFilters = {
   contactIds: [],
   moveTimings: [],
   sort: 'updated',
+}
+
+// statuses behind the open/closed quick filters; together they cover every status
+export const taskStatusPresets: StatusPresetMap<TaskStatus> = {
+  open: ['not_started', 'scheduled', 'in_progress', 'stuck'],
+  closed: ['done', 'cancelled'],
 }
 
 const naturalDir: Record<TaskSort, SortDir> = {

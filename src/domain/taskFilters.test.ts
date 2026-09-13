@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { defaultTaskFilters, filterAndSortTasks } from './taskFilters'
+import { defaultTaskFilters, filterAndSortTasks, taskStatusPresets } from './taskFilters'
+import { taskStatusLabels } from './labels'
+import type { TaskStatus } from './schemas'
 import { payment, task } from '../test/fixtures'
 
 describe('filterAndSortTasks', () => {
@@ -96,5 +98,31 @@ describe('filterAndSortTasks', () => {
     ]
     const result = filterAndSortTasks(owed, { ...defaultTaskFilters, sort: 'remaining' }, '2026-08-10')
     expect(result.map((t) => t.title)).toEqual(['עתידי', 'שולם'])
+  })
+})
+
+describe('taskStatusPresets', () => {
+  const presetTasks = [
+    task({ title: 'לא התחיל', status: 'not_started' }),
+    task({ title: 'מתואם', status: 'scheduled' }),
+    task({ title: 'בתהליך', status: 'in_progress' }),
+    task({ title: 'תקוע', status: 'stuck' }),
+    task({ title: 'הושלם', status: 'done' }),
+    task({ title: 'בוטל', status: 'cancelled' }),
+  ]
+
+  it('classifies every status as either open or closed', () => {
+    const classified = [...taskStatusPresets.open, ...taskStatusPresets.closed]
+    expect(classified.sort()).toEqual((Object.keys(taskStatusLabels) as TaskStatus[]).sort())
+  })
+
+  it('the open preset selects everything still to be done', () => {
+    const result = filterAndSortTasks(presetTasks, { ...defaultTaskFilters, statuses: taskStatusPresets.open })
+    expect(result.map((t) => t.title).sort()).toEqual(['בתהליך', 'לא התחיל', 'מתואם', 'תקוע'].sort())
+  })
+
+  it('the closed preset selects done and cancelled tasks', () => {
+    const result = filterAndSortTasks(presetTasks, { ...defaultTaskFilters, statuses: taskStatusPresets.closed })
+    expect(result.map((t) => t.title).sort()).toEqual(['בוטל', 'הושלם'].sort())
   })
 })

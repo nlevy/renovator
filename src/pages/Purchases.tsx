@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import PaidProgress from '../components/PaidProgress'
+import StatusPresetChips from '../components/StatusPresetChips'
 import { MoveTimingBadge, PurchaseStatusBadge } from '../components/StatusBadge'
 import PurchaseFormModal from '../components/PurchaseFormModal'
 import Button from '../components/ui/Button'
@@ -12,11 +13,13 @@ import {
   filterAndSortPurchases,
   isPurchaseOverdue,
   purchaseSortDir,
+  purchaseStatusPresets,
   type PurchaseFilters,
   type PurchaseSort,
 } from '../domain/purchaseFilters'
+import { activePreset, togglePreset } from '../domain/statusPresets'
 import { useStore } from '../store/useStore'
-import { formatDate } from '../utils/format'
+import { formatCount, formatDate } from '../utils/format'
 
 const sortLabels: Record<PurchaseSort, string> = {
   updated: 'עודכן לאחרונה',
@@ -60,6 +63,8 @@ export default function Purchases() {
   const setFilter = <K extends keyof PurchaseFilters>(key: K, value: PurchaseFilters[K]) =>
     setFilters((f) => ({ ...f, [key]: value }))
 
+  const preset = activePreset(filters.statuses, purchaseStatusPresets)
+
   const handleDelete = (purchase: Purchase) => {
     if (window.confirm(`למחוק את הפריט "${purchase.title}"?`)) deletePurchase(purchase.id)
   }
@@ -69,8 +74,15 @@ export default function Purchases() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">רכישות ({purchases.length})</h2>
+        <h2 className="text-lg font-semibold">רכישות ({formatCount(visible.length, purchases.length)})</h2>
         <Button onClick={() => setCreating(true)}>+ רכישה חדשה</Button>
+      </div>
+
+      <div className="mb-2">
+        <StatusPresetChips
+          active={preset}
+          onSelect={(p) => setFilter('statuses', togglePreset(filters.statuses, purchaseStatusPresets, p))}
+        />
       </div>
 
       <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
