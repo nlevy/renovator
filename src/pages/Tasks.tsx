@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import PaidProgress from '../components/PaidProgress'
+import StatusPresetChips from '../components/StatusPresetChips'
 import { MoveTimingBadge, TaskStatusBadge } from '../components/StatusBadge'
 import TaskFormModal from '../components/TaskFormModal'
 import Button from '../components/ui/Button'
@@ -7,15 +8,17 @@ import MultiSelect from '../components/ui/MultiSelect'
 import { Select, TextInput } from '../components/ui/fields'
 import { moveTimingLabels, taskStatusLabels } from '../domain/labels'
 import type { MoveTiming, Task, TaskStatus } from '../domain/schemas'
+import { activePreset, togglePreset } from '../domain/statusPresets'
 import {
   defaultTaskFilters,
   filterAndSortTasks,
   taskSortDir,
+  taskStatusPresets,
   type TaskFilters,
   type TaskSort,
 } from '../domain/taskFilters'
 import { useStore } from '../store/useStore'
-import { formatDate, todayIso } from '../utils/format'
+import { formatCount, formatDate, todayIso } from '../utils/format'
 
 const sortLabels: Record<TaskSort, string> = {
   updated: 'עודכן לאחרונה',
@@ -57,6 +60,8 @@ export default function Tasks() {
   const setFilter = <K extends keyof TaskFilters>(key: K, value: TaskFilters[K]) =>
     setFilters((f) => ({ ...f, [key]: value }))
 
+  const preset = activePreset(filters.statuses, taskStatusPresets)
+
   const handleDelete = (task: Task) => {
     if (window.confirm(`למחוק את המשימה "${task.title}"?`)) deleteTask(task.id)
   }
@@ -64,8 +69,15 @@ export default function Tasks() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">משימות ({tasks.length})</h2>
+        <h2 className="text-lg font-semibold">משימות ({formatCount(visible.length, tasks.length)})</h2>
         <Button onClick={() => setCreating(true)}>+ משימה חדשה</Button>
+      </div>
+
+      <div className="mb-2">
+        <StatusPresetChips
+          active={preset}
+          onSelect={(p) => setFilter('statuses', togglePreset(filters.statuses, taskStatusPresets, p))}
+        />
       </div>
 
       <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">

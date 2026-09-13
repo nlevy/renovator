@@ -1,4 +1,5 @@
 import { effectivePrice, paidAmount } from './derive'
+import type { StatusPresetMap } from './statusPresets'
 import type { SortDir } from './taskFilters'
 import type { MoveTiming, Purchase, PurchaseStatus } from './schemas'
 
@@ -25,6 +26,12 @@ export const defaultPurchaseFilters: PurchaseFilters = {
   vendorIds: [],
   moveTimings: [],
   sort: 'updated',
+}
+
+// statuses behind the open/closed quick filters; together they cover every status
+export const purchaseStatusPresets: StatusPresetMap<PurchaseStatus> = {
+  open: ['to_buy', 'ordered'],
+  closed: ['delivered', 'cancelled'],
 }
 
 const naturalDir: Record<PurchaseSort, SortDir> = {

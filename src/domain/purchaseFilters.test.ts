@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { defaultPurchaseFilters, filterAndSortPurchases, isPurchaseOverdue } from './purchaseFilters'
+import {
+  defaultPurchaseFilters,
+  filterAndSortPurchases,
+  isPurchaseOverdue,
+  purchaseStatusPresets,
+} from './purchaseFilters'
+import { purchaseStatusLabels } from './labels'
+import type { PurchaseStatus } from './schemas'
 import { purchase } from '../test/fixtures'
 
 describe('filterAndSortPurchases', () => {
@@ -57,5 +64,35 @@ describe('isPurchaseOverdue', () => {
   it('is never overdue when delivered or cancelled', () => {
     expect(isPurchaseOverdue(purchase({ status: 'delivered', deliveryDate: '2026-08-01' }), today)).toBe(false)
     expect(isPurchaseOverdue(purchase({ status: 'cancelled', deliveryDate: '2026-08-01' }), today)).toBe(false)
+  })
+})
+
+describe('purchaseStatusPresets', () => {
+  const presetPurchases = [
+    purchase({ title: 'לקנות', status: 'to_buy' }),
+    purchase({ title: 'הוזמן', status: 'ordered' }),
+    purchase({ title: 'סופק', status: 'delivered' }),
+    purchase({ title: 'בוטל', status: 'cancelled' }),
+  ]
+
+  it('classifies every status as either open or closed', () => {
+    const classified = [...purchaseStatusPresets.open, ...purchaseStatusPresets.closed]
+    expect(classified.sort()).toEqual((Object.keys(purchaseStatusLabels) as PurchaseStatus[]).sort())
+  })
+
+  it('the open preset selects everything not yet supplied', () => {
+    const result = filterAndSortPurchases(presetPurchases, {
+      ...defaultPurchaseFilters,
+      statuses: purchaseStatusPresets.open,
+    })
+    expect(result.map((p) => p.title).sort()).toEqual(['הוזמן', 'לקנות'].sort())
+  })
+
+  it('the closed preset selects delivered and cancelled purchases', () => {
+    const result = filterAndSortPurchases(presetPurchases, {
+      ...defaultPurchaseFilters,
+      statuses: purchaseStatusPresets.closed,
+    })
+    expect(result.map((p) => p.title).sort()).toEqual(['בוטל', 'סופק'].sort())
   })
 })
